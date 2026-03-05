@@ -254,9 +254,9 @@ function renderRecycleBin() {
       <td>${t.status}</td>
       <td>${t.priority}</td>
       <td>${t.due}</td>
-      <td>
-        <button onclick="restoreTask(${i})">Restore</button>
-        <button onclick="permanentDelete(${i})" style="padding:0 5px; font-weight:bold; color:red; margin-left:5px;">×</button>
+      <td style="white-space:nowrap; text-align:center;">
+        <button onclick="restoreTask(${i})" style="padding:0 5px; font-size:11px; margin-right:3px;">↺</button>
+        <button onclick="permanentDelete(${i})" style="padding:0 5px; font-weight:bold; color:red; font-size:12px;">×</button>
       </td>
     `;
     tbody.appendChild(row);
