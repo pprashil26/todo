@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Compact Todo</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; font-size: 13px; }
+h1 { font-size: 16px; margin-bottom: 10px; }
+button { font-size: 12px; padding: 4px 8px; }
+input, select, textarea { font-size: 12px; padding: 3px; width: 100%; box-sizing: border-box; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
+th { background: #f2f2f2; }
+textarea { resize: vertical; }
+.toolbar { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Todo</h1>
+
+<div class="toolbar">
+<button onclick="addTask()">Add Task</button>
+<button onclick="exportTasks()">Export</button>
+<input type="file" id="importFile" style="display:none" onchange="importTasks(event)">
+<button onclick="document.getElementById('importFile').click()">Import (Override)</button>
+</div>
+
+<table id="taskTable">
+<thead>
+<tr>
+<th style="width:90px">Created</th>
+<th style="width:150px">Title</th>
+<th>Description</th>
+<th style="width:110px">Status</th>
+<th style="width:110px">Priority</th>
+<th style="width:110px">Due</th>
+<th style="width:40px"></th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+const STORAGE_KEY = 'compact_todo_tasks_v1';
+let tasks = [];
+
+function todayDate() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+function loadFromStorage() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (data) {
+    try {
+      tasks = JSON.parse(data);
+    } catch (e) {
+      tasks = [];
+    }
+  }
+}
+
+function addTask() {
+  tasks.unshift({
+    created: todayDate(),
+    title: '',
+    description: '',
+    status: 'not started',
+    priority: 'normal',
+    due: 'later'
+  });
+  saveToStorage();
+  render();
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  saveToStorage();
+  render();
+}
+
+function update(index, field, value) {
+  tasks[index][field] = value;
+  saveToStorage();
+}
+
+function option(value, selected) {
+  return `<option value="${value}" ${value===selected?'selected':''}>${value}</option>`;
+}
+
+function render() {
+  const tbody = document.querySelector('#taskTable tbody');
+  tbody.innerHTML = '';
+
+  tasks.forEach((t, i) => {
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>${t.created}</td>
+      <td><input value="${escapeHtml(t.title)}" onchange="update(${i},'title',this.value)"></td>
+      <td><textarea rows="1" onchange="update(${i},'description',this.value)">${escapeHtml(t.description)}</textarea></td>
+      <td>
+        <select onchange="update(${i},'status',this.value)">
+          ${option('not started', t.status)}
+          ${option('started', t.status)}
+          ${option('completed', t.status)}
+          ${option('archived', t.status)}
+        </select>
+      </td>
+      <td>
+        <select onchange="update(${i},'priority',this.value)">
+          ${option('critical', t.priority)}
+          ${option('important', t.priority)}
+          ${option('normal', t.priority)}
+        </select>
+      </td>
+      <td>
+        <select onchange="update(${i},'due',this.value)">
+          ${option('today', t.due)}
+          ${option('this week', t.due)}
+          ${option('later', t.due)}
+        </select>
+      </td>
+      <td><button onclick="deleteTask(${i})">X</button></td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function exportTasks() {
+  let text = '';
+  tasks.forEach(t => {
+    text += `---TASK---\n`;
+    text += `created: ${t.created}\n`;
+    text += `title: ${t.title}\n`;
+    text += `description: ${t.description.replace(/\n/g,' ')}\n`;
+    text += `status: ${t.status}\n`;
+    text += `priority: ${t.priority}\n`;
+    text += `due: ${t.due}\n`;
+  });
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tasks.txt';
+  a.click();
+}
+
+function importTasks(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n');
+    const newTasks = [];
+    let current = null;
+
+    lines.forEach(line => {
+      if (line.startsWith('---TASK---')) {
+        if (current) newTasks.push(current);
+        current = {};
+      } else if (line.includes(':')) {
+        const parts = line.split(':');
+        const key = parts[0].trim();
+        const value = parts.slice(1).join(':').trim();
+        current[key] = value;
+      }
+    });
+
+    if (current) newTasks.push(current);
+
+    tasks = newTasks; // override existing
+    saveToStorage();
+    render();
+  };
+  reader.readAsText(file);
+}
+
+// Initialize
+loadFromStorage();
+render();
+</script>
+
+</body>
+</html>
