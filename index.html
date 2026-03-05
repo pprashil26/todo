@@ -5,18 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compact Todo</title>
 <style>
-body { font-family: Arial, sans-serif; margin: 20px; font-size: 13px; }
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  font-size: 13px;
+}
 h1 { font-size: 16px; margin-bottom: 10px; }
-button { font-size: 12px; padding: 4px 8px; }
-input, select, textarea { font-size: 12px; padding: 3px; width: 100%; box-sizing: border-box; }
+button {
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+input, select, textarea {
+  font-size: 12px;
+  padding: 3px;
+  width: 100%;
+  box-sizing: border-box;
+}
 table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }
+th, td {
+  border: 1px solid #ccc;
+  padding: 4px;
+  text-align: left;
+  vertical-align: top;
+}
 th { background: #f2f2f2; }
 textarea { resize: vertical; }
-.toolbar { margin-bottom: 10px; }
+.toolbar { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+
 @media (max-width: 768px) {
   body { margin: 10px; font-size: 12px; }
-  th, td { padding: 3px; }
+  th, td { padding: 3px; font-size: 11px; }
+  button { font-size: 11px; padding: 2px 6px; }
+  .toolbar { flex-direction: column; gap: 5px; }
+  td input, td select, td textarea { font-size: 11px; padding: 2px; }
+}
+
+@media (max-width: 480px) {
+  th, td { font-size: 10px; padding: 2px; }
+  button { font-size: 10px; padding: 1px 4px; }
+  td input, td select, td textarea { font-size: 10px; padding: 1px; }
+  .toolbar { font-size: 10px; }
 }
 </style>
 </head>
