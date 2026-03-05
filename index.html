@@ -288,6 +288,16 @@ function renderRecycleBin() {
 // --- Init ---
 loadFromStorage(); render();
 loadDeletedFromStorage(); renderRecycleBin();
+  // --- Enable Enter key to add task ---
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    // Prevent adding newline if focus is in a textarea
+    if (document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault(); // Stop default Enter behavior
+      addTask();
+    }
+  }
+});
 </script>
 </body>
 </html>
