@@ -46,6 +46,28 @@ textarea { resize: vertical; }
   button { font-size: 10px; padding: 1px 4px; }
   td input, td select, td textarea { font-size: 10px; padding: 1px; }
   .toolbar { font-size: 10px; }
+
+  /* === MOBILE ONLY: Hide Status, Priority, Due === */
+  #taskTable th:nth-child(5),
+  #taskTable th:nth-child(6),
+  #taskTable th:nth-child(7),
+  #taskTable td:nth-child(5),
+  #taskTable td:nth-child(6),
+  #taskTable td:nth-child(7),
+  #recycleBinTable th:nth-child(5),
+  #recycleBinTable th:nth-child(6),
+  #recycleBinTable th:nth-child(7),
+  #recycleBinTable td:nth-child(5),
+  #recycleBinTable td:nth-child(6),
+  #recycleBinTable td:nth-child(7) {
+    display: none;
+  }
+
+  /* === Adjust remaining column widths on mobile === */
+  #taskTable th:nth-child(1), #recycleBinTable th:nth-child(1) { width: 70px; }
+  #taskTable th:nth-child(2), #recycleBinTable th:nth-child(2) { width: 60px; }
+  #taskTable th:nth-child(3), #recycleBinTable th:nth-child(3) { width: 120px; }
+  #taskTable th:nth-child(8), #recycleBinTable th:nth-child(8) { width: 50px; }
 }
 </style>
 </head>
@@ -54,28 +76,28 @@ textarea { resize: vertical; }
 <h1>Todo</h1>
 
 <div class="toolbar">
-<button onclick="addTask()">Add Task</button>
-<button onclick="exportTasks()">Export</button>
-<input type="file" id="importFile" style="display:none" onchange="importTasks(event)">
-<button onclick="document.getElementById('importFile').click()">Import (Override)</button>
+  <button onclick="addTask()">Add Task</button>
+  <button onclick="exportTasks()">Export</button>
+  <input type="file" id="importFile" style="display:none" onchange="importTasks(event)">
+  <button onclick="document.getElementById('importFile').click()">Import (Override)</button>
 </div>
 
 <div style="overflow-x:auto;">
-<table id="taskTable">
-<thead>
-<tr>
-<th style="width:120px">ID</th>
-<th style="width:90px">Created</th>
-<th style="width:150px">Title</th>
-<th>Description</th>
-<th style="width:110px">Status</th>
-<th style="width:110px">Priority</th>
-<th style="width:110px">Due</th>
-<<th style="width:80px">Delete</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+  <table id="taskTable">
+    <thead>
+      <tr>
+        <th style="width:120px">ID</th>
+        <th style="width:90px">Created</th>
+        <th style="width:150px">Title</th>
+        <th>Description</th>
+        <th style="width:110px">Status</th>
+        <th style="width:110px">Priority</th>
+        <th style="width:110px">Due</th>
+        <th style="width:80px">Delete</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <h2>Recycle Bin</h2>
@@ -109,8 +131,7 @@ function generateID() {
       if (!isNaN(num) && num > max) max = num;
     }
   });
-  const next = max + 1;
-  return 'T' + String(next).padStart(3, '0');
+  return 'T' + String(max + 1).padStart(3, '0');
 }
 
 function todayDate() { return new Date().toISOString().split('T')[0]; }
@@ -151,19 +172,18 @@ function render() {
       <td><select onchange="update(${i},'priority',this.value)">${option('critical', t.priority)}${option('important', t.priority)}${option('normal', t.priority)}</select></td>
       <td><select onchange="update(${i},'due',this.value)">${option('today', t.due)}${option('this week', t.due)}${option('later', t.due)}</select></td>
       <td style="width:40px; text-align:center; white-space:nowrap;">
-        <button onclick="deleteTask(${i})" 
-                style="padding:0 5px; font-weight:bold; color:red; font-size:12px;">×</button>
+        <button onclick="deleteTask(${i})" style="padding:0 5px; font-weight:bold; color:red; font-size:12px;">×</button>
       </td>
     `;
     tbody.appendChild(row);
   });
 }
+
 function escapeHtml(text) {
   if (!text) return '';
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// --- Export flat readable format ---
 function exportTasks() {
   let text = 'Tasks:\n\n';
   tasks.forEach(t => {
@@ -176,21 +196,16 @@ function exportTasks() {
   a.click();
 }
 
-// --- Import flat or old format ---
 function importTasks(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-
   reader.onload = function(e) {
     const lines = e.target.result.split('\n');
     const newTasks = [];
-
     lines.forEach(line => {
       line = line.trim();
       if (!line) return;
-
-      // Flat format line
       if (line.startsWith('T') && line.includes('| Created:')) {
         const parts = line.split('|').map(p => p.trim());
         const task = { id:'', created:'', title:'', description:'', status:'not started', priority:'normal', due:'later' };
@@ -204,47 +219,22 @@ function importTasks(event) {
           else if (p.startsWith('Due:')) task.due = p.replace('Due:','').trim();
         });
         newTasks.push(task);
-      } else if (line.startsWith('---TASK---')) {
-        newTasks.push({});
-      } else if (line.includes(':')) {
-        // old multi-line format
-        const current = newTasks[newTasks.length-1] || {};
-        const [key, ...rest] = line.split(':');
-        current[key.trim()] = rest.join(':').trim();
-        newTasks[newTasks.length-1] = current;
       }
     });
-
     tasks = newTasks;
     saveToStorage();
     render();
   };
-
   reader.readAsText(file);
 }
 
-// Init
-loadFromStorage(); render();
-
-// Recycle Bin arrays and storage
+// --- Recycle Bin ---
 let deletedTasks = [];
-
 function loadDeletedFromStorage() {
   const data = localStorage.getItem('compact_todo_deleted_v2');
-  if (data) {
-    try {
-      deletedTasks = JSON.parse(data);
-    } catch(e) {
-      deletedTasks = [];
-    }
-  }
+  if (data) { try { deletedTasks = JSON.parse(data); } catch(e) { deletedTasks = []; } }
 }
-
-function saveDeletedToStorage() {
-  localStorage.setItem('compact_todo_deleted_v2', JSON.stringify(deletedTasks));
-}
-
-// Delete task (move to recycle bin)
+function saveDeletedToStorage() { localStorage.setItem('compact_todo_deleted_v2', JSON.stringify(deletedTasks)); }
 function deleteTask(index) {
   const removed = tasks.splice(index, 1)[0];
   deletedTasks.unshift(removed);
@@ -253,8 +243,6 @@ function deleteTask(index) {
   render();
   renderRecycleBin();
 }
-
-// Restore task from recycle bin
 function restoreTask(index) {
   const task = deletedTasks.splice(index, 1)[0];
   tasks.unshift(task);
@@ -263,15 +251,11 @@ function restoreTask(index) {
   render();
   renderRecycleBin();
 }
-
-// Permanent delete function
 function permanentDelete(index) {
   deletedTasks.splice(index, 1);
   saveDeletedToStorage();
   renderRecycleBin();
 }
-
-// Render Recycle Bin table with permanent delete
 function renderRecycleBin() {
   const tbody = document.querySelector('#recycleBinTable tbody');
   tbody.innerHTML = '';
@@ -293,9 +277,10 @@ function renderRecycleBin() {
     tbody.appendChild(row);
   });
 }
-// Call on page load
-loadDeletedFromStorage();
-renderRecycleBin(); 	
+
+// --- Init ---
+loadFromStorage(); render();
+loadDeletedFromStorage(); renderRecycleBin();
 </script>
 </body>
 </html>
