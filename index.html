@@ -39,13 +39,12 @@ textarea { resize: vertical; }
   button { font-size: 11px; padding: 2px 6px; }
   .toolbar { flex-direction: column; gap: 5px; }
   td input, td select, td textarea { font-size: 11px; padding: 2px; }
-  /* Hide Description, Status, Priority, Due columns on mobile */
-th:nth-child(4), td:nth-child(4),
-th:nth-child(5), td:nth-child(5),
-th:nth-child(6), td:nth-child(6),
-th:nth-child(7), td:nth-child(7) {
-  display: none;
-}
+  th:nth-child(4), td:nth-child(4),
+  th:nth-child(5), td:nth-child(5),
+  th:nth-child(6), td:nth-child(6),
+  th:nth-child(7), td:nth-child(7) {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -54,7 +53,6 @@ th:nth-child(7), td:nth-child(7) {
   td input, td select, td textarea { font-size: 10px; padding: 1px; }
   .toolbar { font-size: 10px; }
 
-  /* === MOBILE ONLY: Hide Status, Priority, Due === */
   #taskTable th:nth-child(5),
   #taskTable th:nth-child(6),
   #taskTable th:nth-child(7),
@@ -70,7 +68,6 @@ th:nth-child(7), td:nth-child(7) {
     display: none;
   }
 
-  /* === Adjust remaining column widths on mobile === */
   #taskTable th:nth-child(1), #recycleBinTable th:nth-child(1) { width: 70px; }
   #taskTable th:nth-child(2), #recycleBinTable th:nth-child(2) { width: 60px; }
   #taskTable th:nth-child(3), #recycleBinTable th:nth-child(3) { width: 120px; }
@@ -130,6 +127,7 @@ th:nth-child(7), td:nth-child(7) {
 const STORAGE_KEY = 'compact_todo_tasks_v2';
 let tasks = [];
 
+// --- ID and date helpers ---
 function generateID() {
   let max = 0;
   tasks.forEach(t => {
@@ -140,7 +138,6 @@ function generateID() {
   });
   return 'T' + String(max + 1).padStart(3, '0');
 }
-
 function todayDate() { return new Date().toISOString().split('T')[0]; }
 function saveToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
 function loadFromStorage() {
@@ -148,6 +145,7 @@ function loadFromStorage() {
   if (data) { try { tasks = JSON.parse(data); } catch(e) { tasks = []; } }
 }
 
+// --- Add task ---
 function addTask() {
   tasks.unshift({
     id: generateID(),
@@ -160,11 +158,19 @@ function addTask() {
   });
   saveToStorage();
   render();
+
+  // Focus new task title input immediately
+  setTimeout(() => {
+    const firstInput = document.querySelector('#taskTable tbody tr:first-child input');
+    if (firstInput) firstInput.focus();
+  }, 10);
 }
 
+// --- Update helper ---
 function update(index, field, value) { tasks[index][field] = value; saveToStorage(); }
 function option(value, selected) { return `<option value="${value}" ${value===selected?'selected':''}>${value}</option>`; }
 
+// --- Render tasks ---
 function render() {
   const tbody = document.querySelector('#taskTable tbody');
   tbody.innerHTML = '';
@@ -186,11 +192,13 @@ function render() {
   });
 }
 
+// --- Escape HTML ---
 function escapeHtml(text) {
   if (!text) return '';
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// --- Export / Import ---
 function exportTasks() {
   let text = 'Tasks:\n\n';
   tasks.forEach(t => {
@@ -285,36 +293,38 @@ function renderRecycleBin() {
   });
 }
 
-// --- Init ---
+// --- Initialize ---
 loadFromStorage(); render();
 loadDeletedFromStorage(); renderRecycleBin();
-  // --- Enable Enter key to add task ---
-// --- Save task on Enter key ---
-// --- Save task on Enter key ---
+
+// --- Enter key saves task without creating new ---
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') {
-    const active = document.activeElement;
-    // Only inputs, selects, textareas inside the task table
-    if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT') {
-      e.preventDefault(); // Prevent default behavior (like newline in input)
+  if (e.key !== 'Enter') return;
 
-      // Get row index
-      const row = active.closest('tr');
-      if (!row) return;
-      const tbody = row.parentElement;
-      const index = Array.from(tbody.children).indexOf(row);
+  const active = document.activeElement;
+  if (!active.closest('#taskTable')) return;
 
-      if (index >= 0) {
-        const field = active.closest('td').cellIndex;
-        switch(field) {
-          case 2: update(index, 'title', active.value); break;
-          case 3: update(index, 'description', active.value); break;
-          case 4: update(index, 'status', active.value); break;
-          case 5: update(index, 'priority', active.value); break;
-          case 6: update(index, 'due', active.value); break;
-        }
-      }
+  if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT') {
+    e.preventDefault();
+
+    const row = active.closest('tr');
+    if (!row) return;
+    const index = Array.from(row.parentElement.children).indexOf(row);
+    if (index < 0) return;
+
+    const tdIndex = active.closest('td').cellIndex;
+    switch(tdIndex) {
+      case 2: update(index, 'title', active.value); break;
+      case 3: update(index, 'description', active.value); break;
+      case 4: update(index, 'status', active.value); break;
+      case 5: update(index, 'priority', active.value); break;
+      case 6: update(index, 'due', active.value); break;
     }
+
+    // Optional: move focus to next input
+    const inputs = Array.from(row.querySelectorAll('input, textarea, select'));
+    const next = inputs[inputs.indexOf(active)+1];
+    if (next) next.focus();
   }
 });
 </script>
