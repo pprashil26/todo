@@ -93,13 +93,13 @@ th:nth-child(7), td:nth-child(7) {
   <table id="taskTable">
     <thead>
       <tr>
-        <th style="width:120px">ID</th>
-        <th style="width:90px">Created</th>
+        <th style="width:80px">ID</th>
+        <th style="width:80px">Created</th>
         <th style="width:150px">Title</th>
         <th>Description</th>
-        <th style="width:110px">Status</th>
-        <th style="width:110px">Priority</th>
-        <th style="width:110px">Due</th>
+        <th style="width:80px">Status</th>
+        <th style="width:80px">Priority</th>
+        <th style="width:80">Due</th>
         <th style="width:80px">Delete</th>
       </tr>
     </thead>
@@ -112,13 +112,13 @@ th:nth-child(7), td:nth-child(7) {
   <table id="recycleBinTable">
     <thead>
       <tr>
-        <th style="width:120px">ID</th>
-        <th style="width:90px">Created</th>
+        <th style="width:80px">ID</th>
+        <th style="width:80px">Created</th>
         <th style="width:150px">Title</th>
         <th>Description</th>
-        <th style="width:110px">Status</th>
-        <th style="width:110px">Priority</th>
-        <th style="width:110px">Due</th>
+        <th style="width:80px">Status</th>
+        <th style="width:80px">Priority</th>
+        <th style="width:80px">Due</th>
         <th style="width:80px">Restore</th>
       </tr>
     </thead>
@@ -289,12 +289,13 @@ function renderRecycleBin() {
 loadFromStorage(); render();
 loadDeletedFromStorage(); renderRecycleBin();
   // --- Enable Enter key to add task ---
+// --- Save task on Enter key ---
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
-    // Prevent adding newline if focus is in a textarea
-    if (document.activeElement.tagName !== 'TEXTAREA') {
-      e.preventDefault(); // Stop default Enter behavior
-      addTask();
+    const active = document.activeElement;
+    if (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.tagName === 'TEXTAREA') {
+      e.preventDefault(); // Prevent default behavior (like newline in input)
+      active.dispatchEvent(new Event('change')); // Trigger onchange to save the value
     }
   }
 });
