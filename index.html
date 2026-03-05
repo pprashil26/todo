@@ -39,6 +39,13 @@ textarea { resize: vertical; }
   button { font-size: 11px; padding: 2px 6px; }
   .toolbar { flex-direction: column; gap: 5px; }
   td input, td select, td textarea { font-size: 11px; padding: 2px; }
+  /* Hide Description, Status, Priority, Due columns on mobile */
+th:nth-child(4), td:nth-child(4),
+th:nth-child(5), td:nth-child(5),
+th:nth-child(6), td:nth-child(6),
+th:nth-child(7), td:nth-child(7) {
+  display: none;
+}
 }
 
 @media (max-width: 480px) {
