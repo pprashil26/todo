@@ -128,8 +128,8 @@ function exportTasks() {
 function importTasks(event) {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
+
   reader.onload = function(e) {
     const lines = e.target.result.split('\n');
     const newTasks = [];
@@ -138,22 +138,22 @@ function importTasks(event) {
       line = line.trim();
       if (!line) return;
 
-      if (line.startsWith('---TASK---')) {
-        newTasks.push({});
-      } else if (line.includes('| Created:')) {
-        // flat format line
+      // Flat format line
+      if (line.startsWith('T') && line.includes('| Created:')) {
         const parts = line.split('|').map(p => p.trim());
-        const task = {};
+        const task = { id:'', created:'', title:'', description:'', status:'not started', priority:'normal', due:'later' };
         parts.forEach(p => {
-          if (p.startsWith('T')) task.id = p;
-          else if (p.startsWith('Created:')) task.created = p.replace('Created:', '').trim();
-          else if (p.startsWith('Title:')) task.title = p.replace('Title:', '').trim();
-          else if (p.startsWith('Desc:')) task.description = p.replace('Desc:', '').trim();
-          else if (p.startsWith('Status:')) task.status = p.replace('Status:', '').trim();
-          else if (p.startsWith('Priority:')) task.priority = p.replace('Priority:', '').trim();
-          else if (p.startsWith('Due:')) task.due = p.replace('Due:', '').trim();
+          if (p.match(/^T\d+/)) task.id = p;
+          else if (p.startsWith('Created:')) task.created = p.replace('Created:','').trim();
+          else if (p.startsWith('Title:')) task.title = p.replace('Title:','').trim();
+          else if (p.startsWith('Desc:')) task.description = p.replace('Desc:','').trim();
+          else if (p.startsWith('Status:')) task.status = p.replace('Status:','').trim();
+          else if (p.startsWith('Priority:')) task.priority = p.replace('Priority:','').trim();
+          else if (p.startsWith('Due:')) task.due = p.replace('Due:','').trim();
         });
         newTasks.push(task);
+      } else if (line.startsWith('---TASK---')) {
+        newTasks.push({});
       } else if (line.includes(':')) {
         // old multi-line format
         const current = newTasks[newTasks.length-1] || {};
@@ -167,6 +167,7 @@ function importTasks(event) {
     saveToStorage();
     render();
   };
+
   reader.readAsText(file);
 }
 
