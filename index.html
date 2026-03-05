@@ -42,7 +42,6 @@ textarea { resize: vertical; }
 <th style="width:110px">Status</th>
 <th style="width:110px">Priority</th>
 <th style="width:110px">Due</th>
-<th style="width:40px"></th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -59,7 +58,9 @@ function generateID() {
   tasks.forEach(t => {
     if (t.id && t.id.startsWith('T')) {
       const num = parseInt(t.id.substring(1));
-      if (!isNaN(num) && num > max) max = num;
+      if (!isNaN(num) && num > max) {
+        max = num;
+      }
     }
   });
 
@@ -96,12 +97,6 @@ function addTask() {
     priority: 'normal',
     due: 'later'
   });
-  saveToStorage();
-  render();
-}
-
-function deleteTask(index) {
-  tasks.splice(index, 1);
   saveToStorage();
   render();
 }
@@ -149,7 +144,6 @@ function render() {
           ${option('later', t.due)}
         </select>
       </td>
-      <td><button onclick="deleteTask(${i})">X</button></td>
     `;
 
     tbody.appendChild(row);
