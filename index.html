@@ -290,12 +290,30 @@ loadFromStorage(); render();
 loadDeletedFromStorage(); renderRecycleBin();
   // --- Enable Enter key to add task ---
 // --- Save task on Enter key ---
+// --- Save task on Enter key ---
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     const active = document.activeElement;
-    if (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.tagName === 'TEXTAREA') {
+    // Only inputs, selects, textareas inside the task table
+    if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT') {
       e.preventDefault(); // Prevent default behavior (like newline in input)
-      active.dispatchEvent(new Event('change')); // Trigger onchange to save the value
+
+      // Get row index
+      const row = active.closest('tr');
+      if (!row) return;
+      const tbody = row.parentElement;
+      const index = Array.from(tbody.children).indexOf(row);
+
+      if (index >= 0) {
+        const field = active.closest('td').cellIndex;
+        switch(field) {
+          case 2: update(index, 'title', active.value); break;
+          case 3: update(index, 'description', active.value); break;
+          case 4: update(index, 'status', active.value); break;
+          case 5: update(index, 'priority', active.value); break;
+          case 6: update(index, 'due', active.value); break;
+        }
+      }
     }
   }
 });
