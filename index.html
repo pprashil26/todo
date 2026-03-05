@@ -49,56 +49,60 @@ th:nth-child(7), td:nth-child(7) {
 }
 
 @media (max-width: 480px) {
+  body { margin: 8px; font-size: 10px; }
   th, td { font-size: 10px; padding: 2px; }
   button { font-size: 10px; padding: 1px 4px; }
   td input, td select, td textarea { font-size: 10px; padding: 1px; }
-  .toolbar { font-size: 10px; }
-  /* Shrink ID and Delete columns on mobile */
-#taskTable th:nth-child(1),
-#recycleBinTable th:nth-child(1),
-#taskTable td:nth-child(1),
-#recycleBinTable td:nth-child(1) {
-  width: 50px;
-  font-size: 9px;
-  padding: 1px;
-}
+  .toolbar { font-size: 10px; flex-direction: column; gap: 4px; }
 
-#taskTable th:nth-child(8),
-#recycleBinTable th:nth-child(8),
-#taskTable td:nth-child(8),
-#recycleBinTable td:nth-child(8) {
-  width: 30px;
-  font-size: 9px;
-  padding: 1px;
-}
-
-#taskTable td:nth-child(8) button,
-#recycleBinTable td:nth-child(8) button {
-  padding: 0 3px;
-  font-size: 9px;
-}
-
-  /* === MOBILE ONLY: Hide Status, Priority, Due === */
+  /* Hide Description, Status, Priority, Due on small mobile if needed */
+  #taskTable th:nth-child(4),
+  #taskTable td:nth-child(4),
   #taskTable th:nth-child(5),
-  #taskTable th:nth-child(6),
-  #taskTable th:nth-child(7),
   #taskTable td:nth-child(5),
+  #taskTable th:nth-child(6),
   #taskTable td:nth-child(6),
+  #taskTable th:nth-child(7),
   #taskTable td:nth-child(7),
+  #recycleBinTable th:nth-child(4),
+  #recycleBinTable td:nth-child(4),
   #recycleBinTable th:nth-child(5),
-  #recycleBinTable th:nth-child(6),
-  #recycleBinTable th:nth-child(7),
   #recycleBinTable td:nth-child(5),
+  #recycleBinTable th:nth-child(6),
   #recycleBinTable td:nth-child(6),
+  #recycleBinTable th:nth-child(7),
   #recycleBinTable td:nth-child(7) {
     display: none;
   }
 
-  /* === Adjust remaining column widths on mobile === */
-  #taskTable th:nth-child(1), #recycleBinTable th:nth-child(1) { width: 70px; }
-  #taskTable th:nth-child(2), #recycleBinTable th:nth-child(2) { width: 60px; }
-  #taskTable th:nth-child(3), #recycleBinTable th:nth-child(3) { width: 120px; }
-  #taskTable th:nth-child(8), #recycleBinTable th:nth-child(8) { width: 50px; }
+  /* Shrink ID and Delete/Restore columns */
+  #taskTable th:nth-child(1),
+  #recycleBinTable th:nth-child(1),
+  #taskTable td:nth-child(1),
+  #recycleBinTable td:nth-child(1) {
+    width: 50px;
+    font-size: 9px;
+    padding: 1px;
+  }
+
+  #taskTable th:nth-child(8),
+  #recycleBinTable th:nth-child(8),
+  #taskTable td:nth-child(8),
+  #recycleBinTable td:nth-child(8) {
+    width: 30px;
+    font-size: 9px;
+    padding: 1px;
+  }
+
+  #taskTable td:nth-child(8) button,
+  #recycleBinTable td:nth-child(8) button {
+    padding: 0 3px;
+    font-size: 9px;
+  }
+
+  /* Adjust remaining visible columns */
+  #taskTable th:nth-child(2), #recycleBinTable th:nth-child(2) { width: 60px; }   /* Created */
+  #taskTable th:nth-child(3), #recycleBinTable th:nth-child(3) { width: 120px; }  /* Title */
 }
 </style>
 </head>
