@@ -42,10 +42,31 @@ textarea { resize: vertical; }
 <th style="width:110px">Status</th>
 <th style="width:110px">Priority</th>
 <th style="width:110px">Due</th>
+<!-- Example inside task row -->
+<td><button onclick="deleteTask(${i})">Delete</button></td>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
+</div>
+
+<h2>Recycle Bin</h2>
+<div style="overflow-x:auto;">
+  <table id="recycleBinTable">
+    <thead>
+      <tr>
+        <th style="width:120px">ID</th>
+        <th style="width:90px">Created</th>
+        <th style="width:150px">Title</th>
+        <th>Description</th>
+        <th style="width:110px">Status</th>
+        <th style="width:110px">Priority</th>
+        <th style="width:110px">Due</th>
+        <th style="width:80px">Restore</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script>
@@ -173,6 +194,68 @@ function importTasks(event) {
 
 // Init
 loadFromStorage(); render();
+
+// Recycle Bin arrays and storage
+let deletedTasks = [];
+
+function loadDeletedFromStorage() {
+  const data = localStorage.getItem('compact_todo_deleted_v2');
+  if (data) {
+    try {
+      deletedTasks = JSON.parse(data);
+    } catch(e) {
+      deletedTasks = [];
+    }
+  }
+}
+
+function saveDeletedToStorage() {
+  localStorage.setItem('compact_todo_deleted_v2', JSON.stringify(deletedTasks));
+}
+
+// Delete task (move to recycle bin)
+function deleteTask(index) {
+  const removed = tasks.splice(index, 1)[0];
+  deletedTasks.unshift(removed);
+  saveToStorage();
+  saveDeletedToStorage();
+  render();
+  renderRecycleBin();
+}
+
+// Restore task from recycle bin
+function restoreTask(index) {
+  const task = deletedTasks.splice(index, 1)[0];
+  tasks.unshift(task);
+  saveToStorage();
+  saveDeletedToStorage();
+  render();
+  renderRecycleBin();
+}
+
+// Render Recycle Bin table
+function renderRecycleBin() {
+  const tbody = document.querySelector('#recycleBinTable tbody');
+  tbody.innerHTML = '';
+  deletedTasks.forEach((t,i) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${t.id}</td>
+      <td>${t.created}</td>
+      <td>${escapeHtml(t.title)}</td>
+      <td>${escapeHtml(t.description)}</td>
+      <td>${t.status}</td>
+      <td>${t.priority}</td>
+      <td>${t.due}</td>
+      <td><button onclick="restoreTask(${i})">Restore</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Call on page load
+loadDeletedFromStorage();
+renderRecycleBin(); 	
 </script>
 </body>
 </html>
