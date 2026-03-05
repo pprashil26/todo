@@ -233,7 +233,14 @@ function restoreTask(index) {
   renderRecycleBin();
 }
 
-// Render Recycle Bin table
+// Permanent delete function
+function permanentDelete(index) {
+  deletedTasks.splice(index, 1);
+  saveDeletedToStorage();
+  renderRecycleBin();
+}
+
+// Render Recycle Bin table with permanent delete
 function renderRecycleBin() {
   const tbody = document.querySelector('#recycleBinTable tbody');
   tbody.innerHTML = '';
@@ -247,12 +254,14 @@ function renderRecycleBin() {
       <td>${t.status}</td>
       <td>${t.priority}</td>
       <td>${t.due}</td>
-      <td><button onclick="restoreTask(${i})">Restore</button></td>
+      <td>
+        <button onclick="restoreTask(${i})">Restore</button>
+        <button onclick="permanentDelete(${i})" style="padding:0 5px; font-weight:bold; color:red; margin-left:5px;">×</button>
+      </td>
     `;
     tbody.appendChild(row);
   });
 }
-
 // Call on page load
 loadDeletedFromStorage();
 renderRecycleBin(); 	
