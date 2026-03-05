@@ -42,7 +42,6 @@ textarea { resize: vertical; }
 <th style="width:110px">Status</th>
 <th style="width:110px">Priority</th>
 <th style="width:110px">Due</th>
-<!-- Example inside task row -->
 <td><button onclick="deleteTask(${i})">Delete</button></td>
 </tr>
 </thead>
@@ -122,6 +121,7 @@ function render() {
       <td><select onchange="update(${i},'status',this.value)">${option('not started', t.status)}${option('started', t.status)}${option('completed', t.status)}${option('archived', t.status)}</select></td>
       <td><select onchange="update(${i},'priority',this.value)">${option('critical', t.priority)}${option('important', t.priority)}${option('normal', t.priority)}</select></td>
       <td><select onchange="update(${i},'due',this.value)">${option('today', t.due)}${option('this week', t.due)}${option('later', t.due)}</select></td>
+      <td style="width:20px; text-align:center;"><button onclick="deleteTask(${i})" style="padding:0 5px; font-weight:bold; color:red;">×</button></td>
     `;
     tbody.appendChild(row);
   });
