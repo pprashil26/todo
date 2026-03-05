@@ -54,37 +54,21 @@ let tasks = [];
 
 function generateID() {
   let max = 0;
-
   tasks.forEach(t => {
     if (t.id && t.id.startsWith('T')) {
       const num = parseInt(t.id.substring(1));
-      if (!isNaN(num) && num > max) {
-        max = num;
-      }
+      if (!isNaN(num) && num > max) max = num;
     }
   });
-
   const next = max + 1;
   return 'T' + String(next).padStart(3, '0');
 }
 
-function todayDate() {
-  return new Date().toISOString().split('T')[0];
-}
-
-function saveToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-}
-
+function todayDate() { return new Date().toISOString().split('T')[0]; }
+function saveToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
 function loadFromStorage() {
   const data = localStorage.getItem(STORAGE_KEY);
-  if (data) {
-    try {
-      tasks = JSON.parse(data);
-    } catch (e) {
-      tasks = [];
-    }
-  }
+  if (data) { try { tasks = JSON.parse(data); } catch(e) { tasks = []; } }
 }
 
 function addTask() {
@@ -101,77 +85,38 @@ function addTask() {
   render();
 }
 
-function update(index, field, value) {
-  tasks[index][field] = value;
-  saveToStorage();
-}
-
-function option(value, selected) {
-  return `<option value="${value}" ${value===selected?'selected':''}>${value}</option>`;
-}
+function update(index, field, value) { tasks[index][field] = value; saveToStorage(); }
+function option(value, selected) { return `<option value="${value}" ${value===selected?'selected':''}>${value}</option>`; }
 
 function render() {
   const tbody = document.querySelector('#taskTable tbody');
   tbody.innerHTML = '';
-
   tasks.forEach((t, i) => {
     const row = document.createElement('tr');
-
     row.innerHTML = `
       <td>${t.id}</td>
       <td>${t.created}</td>
       <td><input value="${escapeHtml(t.title)}" onchange="update(${i},'title',this.value)"></td>
       <td><textarea rows="1" onchange="update(${i},'description',this.value)">${escapeHtml(t.description)}</textarea></td>
-      <td>
-        <select onchange="update(${i},'status',this.value)">
-          ${option('not started', t.status)}
-          ${option('started', t.status)}
-          ${option('completed', t.status)}
-          ${option('archived', t.status)}
-        </select>
-      </td>
-      <td>
-        <select onchange="update(${i},'priority',this.value)">
-          ${option('critical', t.priority)}
-          ${option('important', t.priority)}
-          ${option('normal', t.priority)}
-        </select>
-      </td>
-      <td>
-        <select onchange="update(${i},'due',this.value)">
-          ${option('today', t.due)}
-          ${option('this week', t.due)}
-          ${option('later', t.due)}
-        </select>
-      </td>
+      <td><select onchange="update(${i},'status',this.value)">${option('not started', t.status)}${option('started', t.status)}${option('completed', t.status)}${option('archived', t.status)}</select></td>
+      <td><select onchange="update(${i},'priority',this.value)">${option('critical', t.priority)}${option('important', t.priority)}${option('normal', t.priority)}</select></td>
+      <td><select onchange="update(${i},'due',this.value)">${option('today', t.due)}${option('this week', t.due)}${option('later', t.due)}</select></td>
     `;
-
     tbody.appendChild(row);
   });
 }
 
 function escapeHtml(text) {
   if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// --- Export flat readable format ---
 function exportTasks() {
-  let text = '';
+  let text = 'Tasks:\n\n';
   tasks.forEach(t => {
-    text += `---TASK---\n`;
-    text += `id: ${t.id}\n`;
-    text += `created: ${t.created}\n`;
-    text += `title: ${t.title}\n`;
-    text += `description: ${t.description.replace(/\n/g,' ')}\n`;
-    text += `status: ${t.status}\n`;
-    text += `priority: ${t.priority}\n`;
-    text += `due: ${t.due}\n`;
+    text += `${t.id} | Created: ${t.created} | Title: ${t.title} | Desc: ${t.description} | Status: ${t.status} | Priority: ${t.priority} | Due: ${t.due}\n`;
   });
-
   const blob = new Blob([text], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -179,6 +124,7 @@ function exportTasks() {
   a.click();
 }
 
+// --- Import flat or old format ---
 function importTasks(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -187,33 +133,45 @@ function importTasks(event) {
   reader.onload = function(e) {
     const lines = e.target.result.split('\n');
     const newTasks = [];
-    let current = null;
 
     lines.forEach(line => {
+      line = line.trim();
+      if (!line) return;
+
       if (line.startsWith('---TASK---')) {
-        if (current) newTasks.push(current);
-        current = {};
+        newTasks.push({});
+      } else if (line.includes('| Created:')) {
+        // flat format line
+        const parts = line.split('|').map(p => p.trim());
+        const task = {};
+        parts.forEach(p => {
+          if (p.startsWith('T')) task.id = p;
+          else if (p.startsWith('Created:')) task.created = p.replace('Created:', '').trim();
+          else if (p.startsWith('Title:')) task.title = p.replace('Title:', '').trim();
+          else if (p.startsWith('Desc:')) task.description = p.replace('Desc:', '').trim();
+          else if (p.startsWith('Status:')) task.status = p.replace('Status:', '').trim();
+          else if (p.startsWith('Priority:')) task.priority = p.replace('Priority:', '').trim();
+          else if (p.startsWith('Due:')) task.due = p.replace('Due:', '').trim();
+        });
+        newTasks.push(task);
       } else if (line.includes(':')) {
-        const parts = line.split(':');
-        const key = parts[0].trim();
-        const value = parts.slice(1).join(':').trim();
-        current[key] = value;
+        // old multi-line format
+        const current = newTasks[newTasks.length-1] || {};
+        const [key, ...rest] = line.split(':');
+        current[key.trim()] = rest.join(':').trim();
+        newTasks[newTasks.length-1] = current;
       }
     });
 
-    if (current) newTasks.push(current);
-
-    tasks = newTasks; // override existing
+    tasks = newTasks;
     saveToStorage();
     render();
   };
   reader.readAsText(file);
 }
 
-// Initialize
-loadFromStorage();
-render();
+// Init
+loadFromStorage(); render();
 </script>
-
 </body>
 </html>
