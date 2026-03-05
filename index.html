@@ -53,6 +53,30 @@ th:nth-child(7), td:nth-child(7) {
   button { font-size: 10px; padding: 1px 4px; }
   td input, td select, td textarea { font-size: 10px; padding: 1px; }
   .toolbar { font-size: 10px; }
+  /* Shrink ID and Delete columns on mobile */
+#taskTable th:nth-child(1),
+#recycleBinTable th:nth-child(1),
+#taskTable td:nth-child(1),
+#recycleBinTable td:nth-child(1) {
+  width: 50px;
+  font-size: 9px;
+  padding: 1px;
+}
+
+#taskTable th:nth-child(8),
+#recycleBinTable th:nth-child(8),
+#taskTable td:nth-child(8),
+#recycleBinTable td:nth-child(8) {
+  width: 30px;
+  font-size: 9px;
+  padding: 1px;
+}
+
+#taskTable td:nth-child(8) button,
+#recycleBinTable td:nth-child(8) button {
+  padding: 0 3px;
+  font-size: 9px;
+}
 
   /* === MOBILE ONLY: Hide Status, Priority, Due === */
   #taskTable th:nth-child(5),
