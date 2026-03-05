@@ -121,12 +121,14 @@ function render() {
       <td><select onchange="update(${i},'status',this.value)">${option('not started', t.status)}${option('started', t.status)}${option('completed', t.status)}${option('archived', t.status)}</select></td>
       <td><select onchange="update(${i},'priority',this.value)">${option('critical', t.priority)}${option('important', t.priority)}${option('normal', t.priority)}</select></td>
       <td><select onchange="update(${i},'due',this.value)">${option('today', t.due)}${option('this week', t.due)}${option('later', t.due)}</select></td>
-      <td style="width:20px; text-align:center;"><button onclick="deleteTask(${i})" style="padding:0 5px; font-weight:bold; color:red;">×</button></td>
+      <td style="width:40px; text-align:center; white-space:nowrap;">
+        <button onclick="deleteTask(${i})" 
+                style="padding:0 5px; font-weight:bold; color:red; font-size:12px;">×</button>
+      </td>
     `;
     tbody.appendChild(row);
   });
 }
-
 function escapeHtml(text) {
   if (!text) return '';
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
