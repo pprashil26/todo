@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compact Todo</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; font-size: 13px; }
@@ -13,6 +14,10 @@ th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align:
 th { background: #f2f2f2; }
 textarea { resize: vertical; }
 .toolbar { margin-bottom: 10px; }
+@media (max-width: 768px) {
+  body { margin: 10px; font-size: 12px; }
+  th, td { padding: 3px; }
+}
 </style>
 </head>
 <body>
@@ -26,9 +31,11 @@ textarea { resize: vertical; }
 <button onclick="document.getElementById('importFile').click()">Import (Override)</button>
 </div>
 
+<div style="overflow-x:auto;">
 <table id="taskTable">
 <thead>
 <tr>
+<th style="width:120px">ID</th>
 <th style="width:90px">Created</th>
 <th style="width:150px">Title</th>
 <th>Description</th>
@@ -40,10 +47,25 @@ textarea { resize: vertical; }
 </thead>
 <tbody></tbody>
 </table>
+</div>
 
 <script>
-const STORAGE_KEY = 'compact_todo_tasks_v1';
+const STORAGE_KEY = 'compact_todo_tasks_v2';
 let tasks = [];
+
+function generateID() {
+  let max = 0;
+
+  tasks.forEach(t => {
+    if (t.id && t.id.startsWith('T')) {
+      const num = parseInt(t.id.substring(1));
+      if (!isNaN(num) && num > max) max = num;
+    }
+  });
+
+  const next = max + 1;
+  return 'T' + String(next).padStart(3, '0');
+}
 
 function todayDate() {
   return new Date().toISOString().split('T')[0];
@@ -66,6 +88,7 @@ function loadFromStorage() {
 
 function addTask() {
   tasks.unshift({
+    id: generateID(),
     created: todayDate(),
     title: '',
     description: '',
@@ -100,6 +123,7 @@ function render() {
     const row = document.createElement('tr');
 
     row.innerHTML = `
+      <td>${t.id}</td>
       <td>${t.created}</td>
       <td><input value="${escapeHtml(t.title)}" onchange="update(${i},'title',this.value)"></td>
       <td><textarea rows="1" onchange="update(${i},'description',this.value)">${escapeHtml(t.description)}</textarea></td>
@@ -145,6 +169,7 @@ function exportTasks() {
   let text = '';
   tasks.forEach(t => {
     text += `---TASK---\n`;
+    text += `id: ${t.id}\n`;
     text += `created: ${t.created}\n`;
     text += `title: ${t.title}\n`;
     text += `description: ${t.description.replace(/\n/g,' ')}\n`;
